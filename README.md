@@ -3,659 +3,470 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Civilização Tipo 0.732 - Status Atual da Humanidade</title>
+    <title>Simulador Kardashev: Nível 0.73 - A Transição Crítica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-dark: #030712;
-            --panel-bg: rgba(15, 23, 42, 0.88);
-            --border-glow: rgba(245, 158, 11, 0.35);
-            --fossil-amber: #f59e0b;
-            --fossil-red: #ef4444;
-            --clean-cyan: #06b6d4;
-            --clean-green: #10b981;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            user-select: none;
+            --m3c5: #0f172a;
+            --m3c6: #1e293b;
+            --m3c7: #334155;
+            --m3c9: #f8fafc;
+            --m3c10: #94a3b8;
+            --m3c18: #38bdf8;
+            --m3c23: #60a5fa;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background-color: var(--m3c5);
+            color: var(--m3c9);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* HEADER */
-        header {
-            height: 60px;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.85) 100%);
-            border-bottom: 1px solid var(--border-glow);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
-            z-index: 10;
+        .card {
+            background-color: var(--m3c6);
+            border: 1px solid var(--m3c7);
         }
 
-        header h1 {
-            font-size: 1.05rem;
-            letter-spacing: 2px;
-            color: var(--fossil-amber);
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .custom-slider {
+            accent-color: var(--m3c18);
         }
 
-        header h1 span {
-            font-size: 0.75rem;
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid var(--fossil-amber);
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: var(--fossil-amber);
+        .pulse-critical {
+            animation: pulse-red 2s infinite;
         }
 
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid var(--fossil-red);
-            color: var(--fossil-red);
-            letter-spacing: 1px;
-            animation: pulse-border 2s infinite;
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
-
-        @keyframes pulse-border {
-            0%, 100% { border-color: var(--fossil-red); box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); }
-            50% { border-color: var(--fossil-amber); box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
-        }
-
-        /* MAIN CONTAINER */
-        .main-container {
-            display: grid;
-            grid-template-columns: 380px 1fr;
-            height: calc(100vh - 60px);
-            position: relative;
-        }
-
-        /* PAINEL LATERAL DE CONTROLE */
-        .control-panel {
-            background: var(--panel-bg);
-            border-right: 1px solid var(--border-glow);
-            backdrop-filter: blur(12px);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            overflow-y: auto;
-            z-index: 5;
-        }
-
-        .kardashev-box {
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(3, 7, 18, 0.8) 100%);
-            border: 1px solid var(--fossil-amber);
-            border-radius: 10px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
-            position: relative;
-        }
-
-        .kardashev-score {
-            font-size: 2.4rem;
-            font-family: monospace;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 0 0 15px var(--fossil-amber);
-            margin: 2px 0;
-        }
-
-        .power-consumption {
-            font-size: 0.85rem;
-            font-family: monospace;
-            color: var(--clean-cyan);
-        }
-
-        .section-title {
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--fossil-amber);
-            border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-            padding-bottom: 6px;
-            margin-top: 5px;
-        }
-
-        .metric-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .metric-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-        }
-
-        .metric-value {
-            font-family: monospace;
-            font-weight: bold;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            outline: none;
-            cursor: pointer;
-        }
-
-        #slider-fossil { accent-color: var(--fossil-amber); }
-        #slider-renewable { accent-color: var(--clean-cyan); }
-        #slider-nuclear { accent-color: #a855f7; }
-        #slider-power { accent-color: #3b82f6; }
-
-        .toggle-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 0.78rem;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 36px;
-            height: 18px;
-        }
-
-        .switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255,255,255,0.2); transition: .3s; border-radius: 18px;
-        }
-
-        .slider:before {
-            position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px;
-            background-color: white; transition: .3s; border-radius: 50%;
-        }
-
-        input:checked + .slider { background-color: var(--clean-green); }
-        input:checked + .slider:before { transform: translateX(18px); }
-
-        .info-card {
-            background: rgba(0, 0, 0, 0.45);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 0.78rem;
-            line-height: 1.45;
-            color: var(--text-muted);
-        }
-
-        .info-card strong {
-            color: var(--text-main);
-        }
-
-        /* VIEWPORT CANVAS */
-        .viewport {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, #0B132B 0%, #030712 100%);
-            overflow: hidden;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* HUD TELEMETRIA OVERLAY */
-        .hud-overlay {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-glow);
-            border-radius: 10px;
-            padding: 16px;
-            font-family: monospace;
-            font-size: 0.75rem;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            min-width: 280px;
-        }
-
-        .hud-line {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .progress-bar-bg {
-            width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 4px;
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 73.2%;
-            background: linear-gradient(90deg, var(--fossil-amber) 0%, var(--clean-cyan) 100%);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col p-4 md:p-6">
 
-    <header>
-        <h1>SIMULADOR KARDASHEV <span>TIPO 0.732</span></h1>
-        <div class="status-badge" id="status-indicator">STATUS: TRANSIÇÃO CRÍTICA</div>
+    <!-- Top Bar Header -->
+    <header class="max-w-7xl mx-auto w-full mb-6 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
+        <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-sky-400">Simulador de Evolução de Civilização</span>
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                Escala Kardashev: <span id="kardashevDisplay" class="text-sky-400 font-mono">0.730</span>
+                <span class="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Nível 0 - A Transição Crítica</span>
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="btnAdvance" onclick="advanceYear()" class="bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold px-5 py-2.5 rounded-lg shadow-lg shadow-sky-500/20 transition cursor-pointer flex items-center gap-2">
+                <span>Avançar 1 Ano</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+            </button>
+            <button id="btnReset" onclick="resetSimulation()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2.5 rounded-lg text-sm transition cursor-pointer">
+                Reiniciar
+            </button>
+        </div>
     </header>
 
-    <div class="main-container">
-        <aside class="control-panel">
-            <div class="kardashev-box">
-                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Nível Atual na Escala Kardashev</div>
-                <div class="kardashev-score" id="k-score">K 0.732</div>
-                <div class="power-consumption" id="power-display">20.00 TW (2.00 × 10¹³ W)</div>
-            </div>
-
-            <div class="section-title">1. Matriz Energética Global</div>
-            
-            <div class="metric-group">
-                <div class="metric-header">
-                    <span>Combustíveis Fósseis (Petróleo/Carvão/Gás)</span>
-                    <span class="metric-value" id="val-fossil" style="color: var(--fossil-amber);">78%</span>
+    <!-- Main Dashboard Grid -->
+    <main class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+        
+        <!-- Left Column: Core Controls & Needs -->
+        <section class="space-y-6">
+            <div class="card p-5 rounded-xl">
+                <h2 class="text-lg font-bold text-sky-400 mb-4 flex items-center gap-2">
+                    <span>🛠️ Necessidades Críticas</span>
+                </h2>
+                
+                <!-- Fusion Power -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center text-sm mb-1">
+                        <span class="font-medium">Fusão Nuclear Comercial</span>
+                        <span id="fusionVal" class="font-mono text-sky-400">15%</span>
+                    </div>
+                    <input type="range" id="fusionSlider" min="0" max="100" value="15" class="w-full custom-slider" oninput="updateControls()">
+                    <p class="text-xs text-slate-400 mt-1">Substituição de termelétricas e fissão tradicional por fusão limpa.</p>
                 </div>
-                <input type="range" id="slider-fossil" min="0" max="100" value="78">
-            </div>
 
-            <div class="metric-group">
-                <div class="metric-header">
-                    <span>Renováveis (Solar/Eólica/Hídrica)</span>
-                    <span class="metric-value" id="val-renewable" style="color: var(--clean-cyan);">14%</span>
+                <!-- Global Grid -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center text-sm mb-1">
+                        <span class="font-medium">Rede Elétrica Global Inteligente</span>
+                        <span id="gridVal" class="font-mono text-sky-400">20%</span>
+                    </div>
+                    <input type="range" id="gridSlider" min="0" max="100" value="20" class="w-full custom-slider" oninput="updateControls()">
+                    <p class="text-xs text-slate-400 mt-1">Transmissão intercontinental de energia limpa sem perdas.</p>
                 </div>
-                <input type="range" id="slider-renewable" min="0" max="100" value="14">
-            </div>
 
-            <div class="metric-group">
-                <div class="metric-header">
-                    <span>Energia Nuclear (Fissão)</span>
-                    <span class="metric-value" id="val-nuclear" style="color: #a855f7;">8%</span>
+                <!-- Geopolitical Unity -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center text-sm mb-1">
+                        <span class="font-medium">Superação do "Grande Filtro"</span>
+                        <span id="unityVal" class="font-mono text-sky-400">35%</span>
+                    </div>
+                    <input type="range" id="unitySlider" min="0" max="100" value="35" class="w-full custom-slider" oninput="updateControls()">
+                    <p class="text-xs text-slate-400 mt-1">Cooperação geopolítica contra guerra nuclear, pandemias e colapso.</p>
                 </div>
-                <input type="range" id="slider-nuclear" min="0" max="100" value="8">
-            </div>
 
-            <div class="section-title">2. Consumo & Tecnologia</div>
-
-            <div class="metric-group">
-                <div class="metric-header">
-                    <span>Consumo Energético Total (TW)</span>
-                    <span class="metric-value" id="val-power" style="color: #3b82f6;">20.0 TW</span>
-                </div>
-                <input type="range" id="slider-power" min="10" max="100" step="0.5" value="20.0">
-            </div>
-
-            <div class="toggle-box">
-                <span>Captura de Carbono Atmosférico (DAC)</span>
-                <label class="switch"><input type="checkbox" id="sw-ccs"><span class="slider"></span></label>
-            </div>
-
-            <div class="toggle-box">
-                <span>Fusão Nuclear Experimental (Ativa)</span>
-                <label class="switch"><input type="checkbox" id="sw-fusion"><span class="slider"></span></label>
-            </div>
-
-            <div class="section-title">3. Diagnóstico Planetário</div>
-            <div class="info-card">
-                <strong>Análise de Transição:</strong><br>
-                A humanidade consome ~20 Terawatts, predominantemente extraídos de biomassa fóssil antiga. Para alcançar o Nível 1.0 (10¹⁶ W), precisamos multiplicar nosso consumo por ~500x e capturar 100% do insolamento solar e energia natural do planeta.
-            </div>
-        </aside>
-
-        <main class="viewport">
-            <canvas id="simCanvas"></canvas>
-
-            <div class="hud-overlay">
-                <div class="hud-line">
-                    <span>DENSIDADE CO₂:</span>
-                    <span id="hud-co2" style="color: var(--fossil-amber)">424 ppm</span>
-                </div>
-                <div class="hud-line">
-                    <span>ANOMALIA TÉRMICA:</span>
-                    <span id="hud-temp" style="color: var(--fossil-red)">+1.32 °C</span>
-                </div>
-                <div class="hud-line">
-                    <span>QUALIDADE ATMOSFÉRICA:</span>
-                    <span id="hud-atmosphere" style="color: var(--fossil-amber)">DEGRADADA</span>
-                </div>
-                <div class="hud-line">
-                    <span>PROGRESSO PARA TIPO I (1.0):</span>
-                    <span id="hud-progress-pct" style="color: var(--clean-cyan)">73.2%</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                <!-- Carbon Capture -->
+                <div>
+                    <div class="flex justify-between items-center text-sm mb-1">
+                        <span class="font-medium">Captura Atmosférica de Carbono</span>
+                        <span id="carbonVal" class="font-mono text-sky-400">10%</span>
+                    </div>
+                    <input type="range" id="carbonSlider" min="0" max="100" value="10" class="w-full custom-slider" oninput="updateControls()">
+                    <p class="text-xs text-slate-400 mt-1">Remoção direta de CO₂ da atmosfera para reversão do aquecimento.</p>
                 </div>
             </div>
-        </main>
-    </div>
+
+            <!-- Global Status Overview -->
+            <div class="card p-5 rounded-xl">
+                <h3 class="text-md font-bold mb-3 text-slate-200">Métricas Globais do Planeta</h3>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span>CO₂ Atmosférico (ppm)</span>
+                            <span id="co2Display" class="font-mono font-bold text-rose-400">425 ppm</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div id="co2Bar" class="bg-rose-500 h-full transition-all" style="width: 70%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span>Matriz Energética Limpa</span>
+                            <span id="cleanEnergyDisplay" class="font-mono font-bold text-emerald-400">22%</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div id="cleanEnergyBar" class="bg-emerald-500 h-full transition-all" style="width: 22%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span>Risco de Colapso Planetário</span>
+                            <span id="collapseRiskDisplay" class="font-mono font-bold text-amber-400">68%</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div id="riskBar" class="bg-amber-500 h-full transition-all" style="width: 68%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Column: Domain Impact -->
+        <section class="space-y-6">
+            <div class="card p-5 rounded-xl">
+                <h2 class="text-lg font-bold text-sky-400 mb-4">🌍 Transformação dos Ambientes</h2>
+                
+                <div class="space-y-4 text-sm">
+                    <!-- Sea Domain -->
+                    <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-cyan-300">🌊 No Mar</span>
+                            <span id="seaBadge" class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Inicial</span>
+                        </div>
+                        <p id="seaDesc" class="text-xs text-slate-300">Início da mineração robótica submarina sustentável e protótipos de fazendas de algas artificiais.</p>
+                    </div>
+
+                    <!-- Land Domain -->
+                    <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-emerald-300">🌱 Na Terra</span>
+                            <span id="landBadge" class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Dependência Fóssil</span>
+                        </div>
+                        <p id="landDesc" class="text-xs text-slate-300">Uso massivo de combustíveis fósseis e restos orgânicos. Desmatamento ainda ativo.</p>
+                    </div>
+
+                    <!-- Air Domain -->
+                    <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-indigo-300">✈️ No Ar</span>
+                            <span id="airBadge" class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Emissão Alta</span>
+                        </div>
+                        <p id="airDesc" class="text-xs text-slate-300">Frotas de aviação baseadas em querosene. Acúmulo constante de gases do efeito estufa.</p>
+                    </div>
+
+                    <!-- Off-Planet Domain -->
+                    <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-purple-300">🚀 No Espaço / Off-Planet</span>
+                            <span id="spaceBadge" class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">Postos Avançados</span>
+                        </div>
+                        <p id="spaceDesc" class="text-xs text-slate-300">Primeiras bases de exploração científica na Lua e Marte (dependência total da Terra).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Log -->
+            <div class="card p-5 rounded-xl">
+                <h3 class="text-md font-bold mb-2 text-slate-200">Diário do Progresso Planetário</h3>
+                <div id="simLog" class="h-40 overflow-y-auto space-y-2 text-xs font-mono bg-slate-950/60 p-3 rounded border border-slate-800">
+                    <p class="text-sky-400">[Ano 2026] Início da simulação no Nível Kardashev 0.730. A civilização depende de energia fóssil.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Graphs & Analysis -->
+        <section class="space-y-6">
+            <div class="card p-5 rounded-xl flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-sky-400 mb-2">📊 Trajetória Evolutiva</h2>
+                    <p class="text-xs text-slate-400 mb-4">Projeção do índice Kardashev e nível de CO₂ ao longo dos anos.</p>
+                </div>
+                <div class="h-64">
+                    <canvas id="kardashevChart"></canvas>
+                </div>
+            </div>
+
+            <div id="outcomeBox" class="card p-5 rounded-xl border-sky-500/30">
+                <h3 id="outcomeTitle" class="font-bold text-md text-sky-400 mb-1">Estado da Civilização</h3>
+                <p id="outcomeText" class="text-xs text-slate-300 leading-relaxed">
+                    Você está no Nível 0.73. Para transitar para o Tipo 1, é essencial zerar a dependência de fósseis, controlar as emissões de CO₂ e garantir estabilidade geopolítica.
+                </p>
+            </div>
+        </section>
+
+    </main>
 
     <script>
-        const canvas = document.getElementById('simCanvas');
-        const ctx = canvas.getContext('2d');
+        // State Variables
+        let year = 2026;
+        let kardashevLevel = 0.73;
+        let co2Ppm = 425;
+        let cleanEnergy = 22;
+        let collapseRisk = 68;
 
-        // Estado da Simulação
-        const state = {
-            fossilPct: 78,
-            renewablePct: 14,
-            nuclearPct: 8,
-            powerTW: 20.0,
-            powerWatts: 2.0e13,
-            kardashevScore: 0.7301,
-            ccsActive: false,
-            fusionActive: false,
-            rotationAngle: 0,
-            cloudsAngle: 0
-        };
-
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Controles HTML
-        const sliderFossil = document.getElementById('slider-fossil');
-        const sliderRenewable = document.getElementById('slider-renewable');
-        const sliderNuclear = document.getElementById('slider-nuclear');
-        const sliderPower = document.getElementById('slider-power');
-        const swCCS = document.getElementById('sw-ccs');
-        const swFusion = document.getElementById('sw-fusion');
-
-        // Continentes simplificados gerados via coordenadas polares no globo
-        const continentNodes = [];
-        const NUM_NODES = 250;
-        for (let i = 0; i < NUM_NODES; i++) {
-            // Agrupamento simulação de massas continentais
-            const lat = (Math.random() - 0.5) * Math.PI * 0.85;
-            const lon = Math.random() * Math.PI * 2;
-            continentNodes.push({ lat, lon, isCity: Math.random() < 0.65, isRenewable: Math.random() < 0.35 });
-        }
-
-        // Normalização das porcentagens da matriz energética
-        function balanceSliders(changed) {
-            let f = parseInt(sliderFossil.value);
-            let r = parseInt(sliderRenewable.value);
-            let n = parseInt(sliderNuclear.value);
-
-            let total = f + r + n;
-
-            if (total === 0) { f = 100; total = 100; }
-
-            // Ajusta proporcionalmente os outros
-            if (changed === 'fossil') {
-                let rem = 100 - f;
-                let subTotal = r + n;
-                r = subTotal > 0 ? Math.round((r / subTotal) * rem) : Math.round(rem / 2);
-                n = rem - r;
-            } else if (changed === 'renewable') {
-                let rem = 100 - r;
-                let subTotal = f + n;
-                f = subTotal > 0 ? Math.round((f / subTotal) * rem) : Math.round(rem / 2);
-                n = rem - f;
-            } else if (changed === 'nuclear') {
-                let rem = 100 - n;
-                let subTotal = f + r;
-                f = subTotal > 0 ? Math.round((f / subTotal) * rem) : Math.round(rem / 2);
-                r = rem - f;
-            }
-
-            sliderFossil.value = f;
-            sliderRenewable.value = r;
-            sliderNuclear.value = n;
-
-            state.fossilPct = f;
-            state.renewablePct = r;
-            state.nuclearPct = n;
-
-            document.getElementById('val-fossil').innerText = `${f}%`;
-            document.getElementById('val-renewable').innerText = `${r}%`;
-            document.getElementById('val-nuclear').innerText = `${n}%`;
-
-            updateMetrics();
-        }
-
-        function updateMetrics() {
-            state.powerTW = parseFloat(sliderPower.value);
-            state.powerWatts = state.powerTW * 1e12; // 1 TW = 10^12 W
-
-            // Fórmula de Sagan para Escala Kardashev: K = (log10(P) - 6) / 10
-            state.kardashevScore = (Math.log10(state.powerWatts) - 6) / 10;
-
-            state.ccsActive = swCCS.checked;
-            state.fusionActive = swFusion.checked;
-
-            // Atualização do HUD & Dashboard
-            document.getElementById('k-score').innerText = `K ${state.kardashevScore.toFixed(3)}`;
-            document.getElementById('val-power').innerText = `${state.powerTW.toFixed(1)} TW`;
-            
-            const expWatts = (state.powerWatts / 1e13).toFixed(2);
-            document.getElementById('power-display').innerText = `${state.powerTW.toFixed(2)} TW (${expWatts} × 10¹³ W)`;
-
-            // Cálculo do CO2 e Temperatura Anômala
-            let baseCO2 = 280 + (state.fossilPct * 1.85) * (state.powerTW / 20.0);
-            if (state.ccsActive) baseCO2 -= 40;
-            baseCO2 = Math.max(280, Math.min(800, baseCO2));
-
-            let tempAnomaly = 0.2 + ((baseCO2 - 280) / 100) * 0.75;
-            if (state.fusionActive) tempAnomaly -= 0.15;
-            tempAnomaly = Math.max(0.1, tempAnomaly);
-
-            document.getElementById('hud-co2').innerText = `${Math.round(baseCO2)} ppm`;
-            const tempHUD = document.getElementById('hud-temp');
-            tempHUD.innerText = `+${tempAnomaly.toFixed(2)} °C`;
-
-            const statusBadge = document.getElementById('status-indicator');
-            const hudAtmos = document.getElementById('hud-atmosphere');
-
-            if (tempAnomaly > 2.0) {
-                tempHUD.style.color = 'var(--fossil-red)';
-                hudAtmos.innerText = 'RISCO CRÍTICO';
-                hudAtmos.style.color = 'var(--fossil-red)';
-                statusBadge.innerText = 'STATUS: COLAPSO CLIMÁTICO';
-                statusBadge.style.borderColor = 'var(--fossil-red)';
-                statusBadge.style.color = 'var(--fossil-red)';
-            } else if (tempAnomaly > 1.2) {
-                tempHUD.style.color = 'var(--fossil-amber)';
-                hudAtmos.innerText = 'DEGRADADA';
-                hudAtmos.style.color = 'var(--fossil-amber)';
-                statusBadge.innerText = 'STATUS: TRANSIÇÃO CRÍTICA';
-                statusBadge.style.borderColor = 'var(--fossil-amber)';
-                statusBadge.style.color = 'var(--fossil-amber)';
-            } else {
-                tempHUD.style.color = 'var(--clean-green)';
-                hudAtmos.innerText = 'ESTABILIZADA';
-                hudAtmos.style.color = 'var(--clean-green)';
-                statusBadge.innerText = 'STATUS: EQUILÍBRIO SUSTENTÁVEL';
-                statusBadge.style.borderColor = 'var(--clean-green)';
-                statusBadge.style.color = 'var(--clean-green)';
-            }
-
-            // Progresso na Barra
-            const pctProg = (state.kardashevScore * 100).toFixed(1);
-            document.getElementById('hud-progress-pct').innerText = `${pctProg}%`;
-            document.getElementById('progress-bar-fill').style.width = `${pctProg}%`;
-        }
-
-        // Event Listeners
-        sliderFossil.addEventListener('input', () => balanceSliders('fossil'));
-        sliderRenewable.addEventListener('input', () => balanceSliders('renewable'));
-        sliderNuclear.addEventListener('input', () => balanceSliders('nuclear'));
-        sliderPower.addEventListener('input', updateMetrics);
-        swCCS.addEventListener('change', updateMetrics);
-        swFusion.addEventListener('change', updateMetrics);
-
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            const earthRadius = Math.min(canvas.width, canvas.height) * 0.28;
-
-            state.rotationAngle += 0.002;
-            state.cloudsAngle += 0.0015;
-
-            // 1. Grade de Escala Sci-Fi no Fundo
-            ctx.strokeStyle = 'rgba(245, 158, 11, 0.03)';
-            ctx.lineWidth = 1;
-            const step = 50;
-            for (let x = 0; x < canvas.width; x += step) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += step) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-            }
-
-            // 2. Brilho Atmosférico Primário
-            const atmosGlow = ctx.createRadialGradient(cx, cy, earthRadius - 5, cx, cy, earthRadius + 30);
-            const pollutionAlpha = (state.fossilPct / 100) * 0.5;
-            atmosGlow.addColorStop(0, 'rgba(56, 189, 248, 0.2)');
-            atmosGlow.addColorStop(0.6, `rgba(245, 158, 11, ${pollutionAlpha})`);
-            atmosGlow.addColorStop(1, 'rgba(0,0,0,0)');
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, earthRadius + 30, 0, Math.PI * 2);
-            ctx.fillStyle = atmosGlow;
-            ctx.fill();
-
-            // 3. Oceano / Corpo do Planeta
-            const oceanGrad = ctx.createRadialGradient(cx - earthRadius * 0.3, cy - earthRadius * 0.3, 10, cx, cy, earthRadius);
-            oceanGrad.addColorStop(0, '#1e3a8a');
-            oceanGrad.addColorStop(0.7, '#1e293b');
-            oceanGrad.addColorStop(1, '#0f172a');
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
-            ctx.fillStyle = oceanGrad;
-            ctx.fill();
-
-            // 4. Mapeamento de Continentes e Cidades (Rotativos)
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
-            ctx.clip(); // Limita o desenho à esfera terrestre
-
-            // Iluminação Diurna/Noturna Gradiente
-            const sunGrad = ctx.createLinearGradient(cx - earthRadius, cy, cx + earthRadius, cy);
-            sunGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
-            sunGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.2)');
-            sunGrad.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
-
-            // Renderizar Pontos de Continente / Luzes Urbanas
-            continentNodes.forEach(node => {
-                const currentLon = node.lon + state.rotationAngle;
-                const x = cx + Math.cos(currentLon) * Math.cos(node.lat) * earthRadius;
-                const y = cy + Math.sin(node.lat) * earthRadius;
-
-                // Somente pontos na parte frontal do globo
-                if (Math.sin(currentLon) > -0.2) {
-                    ctx.beginPath();
-                    ctx.arc(x, y, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = '#15803d'; // Cor de massa de terra verde
-                    ctx.fill();
-
-                    // Se for um nó populacional (Luzes de Cidades ou Redes Limpas)
-                    if (node.isCity) {
-                        ctx.beginPath();
-                        ctx.arc(x, y, 1.8, 0, Math.PI * 2);
-                        
-                        // Alterna entre luz fóssil (âmbar/cinza) e renovável (ciano)
-                        if (node.isRenewable && state.renewablePct > 30) {
-                            ctx.fillStyle = '#06b6d4';
-                            ctx.shadowColor = '#06b6d4';
-                            ctx.shadowBlur = 6;
-                        } else {
-                            ctx.fillStyle = state.fossilPct > 50 ? '#f59e0b' : '#fef08a';
-                            ctx.shadowColor = '#f59e0b';
-                            ctx.shadowBlur = 4;
-                        }
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
+        // Chart initialized
+        let ctx = document.getElementById('kardashevChart').getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [2026],
+                datasets: [
+                    {
+                        label: 'Nível Kardashev',
+                        data: [0.73],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'CO2 (ppm)',
+                        data: [425],
+                        borderColor: '#f43f5e',
+                        borderDash: [5, 5],
+                        yAxisID: 'y1',
+                        tension: 0.3
                     }
-                }
-            });
-
-            // Aplica sombra da noite
-            ctx.fillStyle = sunGrad;
-            ctx.fillRect(cx - earthRadius, cy - earthRadius, earthRadius * 2, earthRadius * 2);
-
-            // 5. Camada Dinâmica de Poluição e Nuvens de Smog por Carbono
-            const smogDensity = (state.fossilPct / 100) * 0.65;
-            if (smogDensity > 0.05) {
-                ctx.fillStyle = `rgba(120, 85, 40, ${smogDensity})`;
-                for (let c = 0; c < 12; c++) {
-                    const angle = state.cloudsAngle + (c * Math.PI / 6);
-                    const cloudX = cx + Math.cos(angle) * (earthRadius * 0.6);
-                    const cloudY = cy + Math.sin(angle * 1.5) * (earthRadius * 0.5);
-
-                    ctx.beginPath();
-                    ctx.arc(cloudX, cloudY, 35 + (c * 4), 0, Math.PI * 2);
-                    ctx.fill();
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#334155' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        min: 0.7,
+                        max: 1.0,
+                        ticks: { color: '#38bdf8' },
+                        grid: { color: '#334155' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        min: 250,
+                        max: 600,
+                        ticks: { color: '#f43f5e' },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#f8fafc', boxWidth: 12 } }
                 }
             }
+        });
 
-            ctx.restore();
+        function updateControls() {
+            let fusion = parseInt(document.getElementById('fusionSlider').value);
+            let grid = parseInt(document.getElementById('gridSlider').value);
+            let unity = parseInt(document.getElementById('unitySlider').value);
+            let carbon = parseInt(document.getElementById('carbonSlider').value);
 
-            // 6. Anéis de Órbita de Monitoramento
-            ctx.beginPath();
-            ctx.arc(cx, cy, earthRadius + 45, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(245, 158, 11, 0.15)';
-            ctx.setLineDash([4, 10]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            document.getElementById('fusionVal').innerText = fusion + '%';
+            document.getElementById('gridVal').innerText = grid + '%';
+            document.getElementById('unityVal').innerText = unity + '%';
+            document.getElementById('carbonVal').innerText = carbon + '%';
 
-            requestAnimationFrame(render);
+            // Calculate metrics derived from current sliders
+            cleanEnergy = Math.min(100, Math.round((fusion * 0.4) + (grid * 0.4) + 20));
+            collapseRisk = Math.max(0, Math.round(100 - (unity * 0.6) - (cleanEnergy * 0.3)));
+
+            // Update UI elements
+            document.getElementById('cleanEnergyDisplay').innerText = cleanEnergy + '%';
+            document.getElementById('cleanEnergyBar').style.width = cleanEnergy + '%';
+
+            document.getElementById('collapseRiskDisplay').innerText = collapseRisk + '%';
+            document.getElementById('riskBar').style.width = collapseRisk + '%';
+
+            updateDomainStates(fusion, grid, unity, carbon);
         }
 
-        // Inicialização
-        balanceSliders('fossil');
-        render();
+        function updateDomainStates(fusion, grid, unity, carbon) {
+            // Sea Domain
+            let seaBadge = document.getElementById('seaBadge');
+            let seaDesc = document.getElementById('seaDesc');
+            if (fusion > 50 && grid > 40) {
+                seaBadge.innerText = "Avançado";
+                seaBadge.className = "text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                seaDesc.innerText = "Dessalinização massiva ativa com energia limpa; mineração submarina autônoma sustentável e megafazendas de algas.";
+            } else {
+                seaBadge.innerText = "Inicial";
+                seaBadge.className = "text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                seaDesc.innerText = "Início da mineração robótica submarina sustentável e protótipos de fazendas de algas artificiais.";
+            }
+
+            // Land Domain
+            let landBadge = document.getElementById('landBadge');
+            let landDesc = document.getElementById('landDesc');
+            if (fusion > 70 && cleanEnergy > 80) {
+                landBadge.innerText = "Sustentável";
+                landBadge.className = "text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                landDesc.innerText = "Fim total de termelétricas. Cidades verticais megasustentáveis e reflorestamento global concluído.";
+            } else {
+                landBadge.innerText = "Transição";
+                landBadge.className = "text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                landDesc.innerText = "Substituição gradual de termelétricas. Desmatamento em queda, mas infraestrutura fóssil ainda presente.";
+            }
+
+            // Air Domain
+            let airBadge = document.getElementById('airBadge');
+            let airDesc = document.getElementById('airDesc');
+            if (carbon > 60) {
+                airBadge.innerText = "Reversão Ativa";
+                airBadge.className = "text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                airDesc.innerText = "Captura de carbono massiva reduzindo ppm atmosférico. Frota aérea 100% elétrica/hidrogênio.";
+            } else {
+                airBadge.innerText = "Emissão Alta";
+                airBadge.className = "text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                airDesc.innerText = "Início da captura de carbono. Frotas elétricas em expansão no espaço aéreo.";
+            }
+
+            // Space Domain
+            let spaceBadge = document.getElementById('spaceBadge');
+            let spaceDesc = document.getElementById('spaceDesc');
+            if (fusion > 80 && unity > 70) {
+                spaceBadge.innerText = "Colônias Autossuficientes";
+                spaceBadge.className = "text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30";
+                spaceDesc.innerText = "Bases autossuficientes operacionais em Marte e na Lua atuando como postos avançados da humanidade.";
+            } else {
+                spaceBadge.innerText = "Postos Avançados";
+                spaceBadge.className = "text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300";
+                spaceDesc.innerText = "Primeiras bases de exploração científica na Lua e Marte (dependência total da Terra).";
+            }
+        }
+
+        function advanceYear() {
+            year += 1;
+
+            let fusion = parseInt(document.getElementById('fusionSlider').value);
+            let grid = parseInt(document.getElementById('gridSlider').value);
+            let unity = parseInt(document.getElementById('unitySlider').value);
+            let carbon = parseInt(document.getElementById('carbonSlider').value);
+
+            // Calculate annual CO2 change based on clean energy and carbon capture
+            let co2Delta = 3 - (cleanEnergy * 0.05) - (carbon * 0.04);
+            co2Ppm = Math.max(280, Math.round((co2Ppm + co2Delta) * 10) / 10);
+
+            // Calculate Kardashev growth
+            let growth = (fusion * 0.0008) + (grid * 0.0005) + (unity * 0.0004) + (cleanEnergy * 0.0003);
+            kardashevLevel = Math.min(1.0, Math.round((kardashevLevel + growth) * 1000) / 1000);
+
+            // Update CO2 Display
+            document.getElementById('co2Display').innerText = co2Ppm + ' ppm';
+            document.getElementById('co2Bar').style.width = Math.min(100, (co2Ppm / 500) * 100) + '%';
+            document.getElementById('kardashevDisplay').innerText = kardashevLevel.toFixed(3);
+
+            // Update Log
+            let log = document.getElementById('simLog');
+            let newLog = document.createElement('p');
+
+            if (collapseRisk > 80 && Math.random() < 0.4) {
+                newLog.className = "text-rose-400";
+                newLog.innerText = `[Ano ${year}] CRISE: Instabilidade geopolítica e eventos climáticos desaceleram o progresso!`;
+            } else if (kardashevLevel >= 1.0) {
+                newLog.className = "text-emerald-400 font-bold";
+                newLog.innerText = `[Ano ${year}] MARCO ALCANÇADO! A civilização atingiu o TIPO 1 na Escala Kardashev!`;
+            } else {
+                newLog.className = "text-slate-300";
+                newLog.innerText = `[Ano ${year}] Kardashev: ${kardashevLevel.toFixed(3)} | CO2: ${co2Ppm} ppm | Risco: ${collapseRisk}%`;
+            }
+            log.prepend(newLog);
+
+            // Update Chart
+            chart.data.labels.push(year);
+            chart.data.datasets[0].data.push(kardashevLevel);
+            chart.data.datasets[1].data.push(co2Ppm);
+            chart.update();
+
+            // Evaluate simulation state
+            checkStatus();
+        }
+
+        function checkStatus() {
+            let title = document.getElementById('outcomeTitle');
+            let text = document.getElementById('outcomeText');
+            let box = document.getElementById('outcomeBox');
+
+            if (co2Ppm > 480 || collapseRisk > 85) {
+                title.innerText = "⚠️ Risco Severo de Colapso";
+                title.className = "font-bold text-md text-rose-400 mb-1";
+                box.className = "card p-5 rounded-xl border-rose-500/50 bg-rose-950/10";
+                text.innerText = "A civilização enfrentará o 'Grande Filtro' com altas chances de colapso devido ao descontrole climático e instabilidade geopolítica.";
+            } else if (kardashevLevel >= 1.0) {
+                title.innerText = "🌟 Civilização de Tipo I Atingida!";
+                title.className = "font-bold text-md text-emerald-400 mb-1";
+                box.className = "card p-5 rounded-xl border-emerald-500/50 bg-emerald-950/10";
+                text.innerText = "Parabéns! A humanidade domina completamente a energia do planeta Terra, superou a dependência fóssil e estabeleceu estabilidade planetária.";
+            } else {
+                title.innerText = "Estado da Civilização: Transição Ativa";
+                title.className = "font-bold text-md text-sky-400 mb-1";
+                box.className = "card p-5 rounded-xl border-sky-500/30";
+                text.innerText = `Progresso contínuo no Nível ${kardashevLevel.toFixed(3)}. Mantenha o equilíbrio entre investimento tecnológico e coesão geopolítica.`;
+            }
+        }
+
+        function resetSimulation() {
+            year = 2026;
+            kardashevLevel = 0.73;
+            co2Ppm = 425;
+
+            document.getElementById('fusionSlider').value = 15;
+            document.getElementById('gridSlider').value = 20;
+            document.getElementById('unitySlider').value = 35;
+            document.getElementById('carbonSlider').value = 10;
+
+            document.getElementById('simLog').innerHTML = '<p class="text-sky-400">[Ano 2026] Simulação reiniciada. Nível Kardashev 0.730.</p>';
+            
+            chart.data.labels = [2026];
+            chart.data.datasets[0].data = [0.73];
+            chart.data.datasets[1].data = [425];
+            chart.update();
+
+            updateControls();
+            document.getElementById('co2Display').innerText = '425 ppm';
+            document.getElementById('kardashevDisplay').innerText = '0.730';
+        }
+
+        // Initialize on load
+        updateControls();
     </script>
 </body>
 </html>
